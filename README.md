@@ -55,6 +55,17 @@ npm run build
 2. 将 `dist` 文件夹内容上传到 Cloudflare Pages
 3. 配置自定义域名 (可选)
 
+## 部署到 Cloudflare Workers
+
+### 通过 Git 仓库
+
+1. 将代码推送到 GitHub/GitLab 仓库
+2. 在 Cloudflare Workers 中连接仓库
+3. 设置构建配置:
+   - **构建命令**: `npm run build`
+   - **部署命令**: `npx wrangler deploy --assets=./dist`
+   - **Node.js 版本**: 18.x
+  
 ## 使用说明
 
 1. 在输入框中输入黄金的美元价格 (每盎司)
