@@ -199,7 +199,22 @@ class GoldPriceConverter {
 // 页面加载完成后初始化
 document.addEventListener("DOMContentLoaded", () => {
   new GoldPriceConverter();
+  updateCopyrightYear();
 });
+
+// 更新版权年份
+function updateCopyrightYear() {
+  const currentYear = new Date().getFullYear();
+  const copyrightElement = document.getElementById("copyrightYear");
+
+  if (copyrightElement) {
+    if (currentYear > 2025) {
+      copyrightElement.textContent = `2025-${currentYear}`;
+    } else {
+      copyrightElement.textContent = "2025";
+    }
+  }
+}
 
 // 添加一些实用的工具函数
 const utils = {
