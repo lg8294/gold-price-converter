@@ -111,6 +111,7 @@ body {
   padding: 0 20px;
   transition: all 0.3s ease;
   height: 60px;
+  min-width: 0; /* 防止flex子元素溢出 */
 }
 
 .input-group:focus-within {
@@ -134,6 +135,7 @@ body {
   color: #2d3748;
   outline: none;
   padding: 0 10px;
+  min-width: 0; /* 防止输入框溢出 */
 }
 
 .input-group input::placeholder {
@@ -145,6 +147,8 @@ body {
   color: #718096;
   font-weight: 500;
   margin-left: 10px;
+  white-space: nowrap; /* 防止单位换行 */
+  flex-shrink: 0; /* 防止单位被压缩 */
 }
 
 .exchange-rate {
@@ -332,6 +336,72 @@ body {
 
   .result-value span:first-child {
     font-size: 2.5rem;
+  }
+}
+
+/* 小屏幕优化 */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .converter-card {
+    padding: 20px;
+  }
+
+  .input-group {
+    padding: 0 15px;
+    height: 55px;
+  }
+
+  .input-group input {
+    font-size: 1.1rem;
+    padding: 0 8px;
+  }
+
+  .unit {
+    font-size: 0.9rem;
+    margin-left: 8px;
+  }
+
+  .currency-symbol {
+    font-size: 1.3rem;
+    margin-right: 8px;
+  }
+
+  .unit-selector select {
+    min-width: 90px;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 360px) {
+  .input-group {
+    padding: 0 12px;
+    height: 50px;
+  }
+
+  .input-group input {
+    font-size: 1rem;
+    padding: 0 6px;
+  }
+
+  .unit {
+    font-size: 0.85rem;
+    margin-left: 6px;
+  }
+
+  .currency-symbol {
+    font-size: 1.2rem;
+    margin-right: 6px;
+  }
+
+  .unit-selector select {
+    min-width: 80px;
+    font-size: 0.75rem;
+    padding: 5px 8px;
   }
 }
 
