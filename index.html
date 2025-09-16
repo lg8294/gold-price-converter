@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>黄金价格换算器</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🏆 黄金价格换算器</h1>
+      <p>实时汇率 · 精确换算</p>
+    </header>
+
+    <main class="main">
+      <div class="converter-card">
+        <div class="input-section">
+          <div class="input-header">
+            <label for="goldPrice">黄金价格</label>
+            <div class="unit-selector">
+              <select id="unitSelector">
+                <option value="usd-oz">美元/盎司</option>
+                <option value="cny-oz">人民币/盎司</option>
+                <option value="cny-gram">人民币/克</option>
+                <option value="usd-gram">美元/克</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-group">
+            <span class="currency-symbol" id="currencySymbol">$</span>
+            <input type="number" id="goldPrice" placeholder="输入价格" step="0.01" min="0">
+            <span class="unit" id="unitDisplay">/ 盎司</span>
+          </div>
+        </div>
+
+        <div class="exchange-rate">
+          <div class="rate-info">
+            <span class="rate-label">当前汇率</span>
+            <span class="rate-value" id="exchangeRate">加载中...</span>
+          </div>
+          <button id="refreshRate" class="refresh-btn">🔄 刷新</button>
+        </div>
+
+        <div class="result-section">
+          <div class="result-card">
+            <h3>换算结果</h3>
+            <div class="result-value">
+              <span id="resultPrice">0.00</span>
+              <span class="result-unit">元/克</span>
+            </div>
+            <div class="result-details">
+              <div class="detail-item">
+                <span>美元/盎司:</span>
+                <span id="usdPerOz">$0.00</span>
+              </div>
+              <div class="detail-item">
+                <span>人民币/盎司:</span>
+                <span id="cnyPerOz">¥0.00</span>
+              </div>
+              <div class="detail-item">
+                <span>人民币/克:</span>
+                <span id="cnyPerGram">¥0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>换算说明</h3>
+        <ul>
+          <li>1 盎司 = 31.1035 克</li>
+          <li>汇率数据来源于实时API</li>
+          <li>价格每5分钟自动更新</li>
+        </ul>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>© 2024 黄金价格换算器 | 数据仅供参考</p>
+    </footer>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+
+</html>
