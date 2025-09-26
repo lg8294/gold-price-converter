@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="16" cy="16" r="15" fill="url(#goldGradient)" stroke="#B8860B" stroke-width="1"/>
+  
+  <!-- 黄金符号 -->
+  <text x="16" y="22" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#8B4513">₩</text>
+  
+  <!-- 装饰性光点 -->
+  <circle cx="10" cy="8" r="1.5" fill="#FFF" opacity="0.8"/>
+  <circle cx="22" cy="10" r="1" fill="#FFF" opacity="0.6"/>
+  <circle cx="8" cy="20" r="1" fill="#FFF" opacity="0.7"/>
+  <circle cx="24" cy="22" r="1.5" fill="#FFF" opacity="0.5"/>
+</svg>

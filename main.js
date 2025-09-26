@@ -4,22 +4,22 @@ class GoldPriceConverter {
     this.exchangeRate = 0;
     this.isLoading = false;
     this.currentUnit = "usd-oz"; // 默认单位
+    this.goldPrice = 0; // 实时金价
+    this.isFirstLoad = true; // 标记是否为首次加载
     this.init();
   }
 
   init() {
     this.bindEvents();
     this.loadExchangeRate();
-    this.startAutoRefresh();
+    this.startGoldPriceRefresh();
   }
 
   bindEvents() {
     const goldPriceInput = document.getElementById("goldPrice");
-    const refreshBtn = document.getElementById("refreshRate");
     const unitSelector = document.getElementById("unitSelector");
 
     goldPriceInput.addEventListener("input", () => this.calculatePrice());
-    refreshBtn.addEventListener("click", () => this.loadExchangeRate());
     unitSelector.addEventListener("change", (e) =>
       this.changeUnit(e.target.value)
     );
@@ -30,13 +30,10 @@ class GoldPriceConverter {
 
     this.isLoading = true;
     const rateElement = document.getElementById("exchangeRate");
-    const refreshBtn = document.getElementById("refreshRate");
 
     try {
       rateElement.textContent = "加载中...";
       rateElement.classList.add("loading");
-      refreshBtn.disabled = true;
-      refreshBtn.textContent = "🔄 加载中...";
 
       // 使用免费的汇率API
       const response = await fetch(
@@ -48,6 +45,9 @@ class GoldPriceConverter {
         this.exchangeRate = data.rates.CNY;
         rateElement.textContent = `1 USD = ${this.exchangeRate.toFixed(4)} CNY`;
         rateElement.classList.remove("loading");
+
+        // 汇率加载完成后，获取实时金价
+        await this.loadGoldPrice();
 
         // 重新计算价格（保持输入数据不变）
         this.calculatePrice();
@@ -61,8 +61,150 @@ class GoldPriceConverter {
       this.showError("无法获取实时汇率，请稍后重试");
     } finally {
       this.isLoading = false;
-      refreshBtn.disabled = false;
-      refreshBtn.textContent = "🔄 刷新";
+    }
+  }
+
+  async loadGoldPrice() {
+    try {
+      // 方案1: 使用福利云API（免费，支持CORS）
+      const response = await fetch("https://free.xwteam.cn/api/gold/trade");
+      const data = await response.json();
+
+      if (data && data.code === 200 && data.data) {
+        // 解析福利云API的金价数据
+        let goldPrice = 0;
+
+        // 优先使用伦敦金价格（GJ_Au），单位为美元/盎司
+        if (data.data.GJ && data.data.GJ.length > 0) {
+          const londonGold = data.data.GJ.find(
+            (item) => item.Symbol === "GJ_Au"
+          );
+          if (londonGold && londonGold.BP > 0) {
+            goldPrice = parseFloat(londonGold.BP);
+          }
+        }
+
+        // 如果没有伦敦金价格，使用上海黄金99.99价格（需要转换）
+        if (goldPrice === 0 && data.data.SH && data.data.SH.length > 0) {
+          const shGold = data.data.SH.find(
+            (item) => item.Symbol === "SH_Au9999"
+          );
+          if (shGold && shGold.BP > 0) {
+            // 上海黄金价格是人民币/克，需要转换为美元/盎司
+            const cnyPerGram = parseFloat(shGold.BP);
+            const usdPerGram = cnyPerGram / this.exchangeRate; // 人民币转美元
+            goldPrice = usdPerGram * 31.1035; // 克转盎司
+          }
+        }
+
+        // 如果还没有价格，使用国内黄金价格（需要转换）
+        if (goldPrice === 0 && data.data.LF && data.data.LF.length > 0) {
+          const domesticGold = data.data.LF.find(
+            (item) => item.Symbol === "Au"
+          );
+          if (domesticGold && domesticGold.BP > 0) {
+            // 国内黄金价格是人民币/克，需要转换为美元/盎司
+            const cnyPerGram = parseFloat(domesticGold.BP);
+            const usdPerGram = cnyPerGram / this.exchangeRate; // 人民币转美元
+            goldPrice = usdPerGram * 31.1035; // 克转盎司
+          }
+        }
+
+        if (goldPrice > 0) {
+          this.goldPrice = goldPrice;
+          if (this.isFirstLoad) {
+            this.setGoldPriceInput(goldPrice);
+          }
+          this.updateCurrentGoldPriceDisplay(goldPrice);
+          console.log(
+            "使用福利云API获取金价:",
+            goldPrice.toFixed(2),
+            "美元/盎司"
+          );
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("福利云API失败:", error);
+      // 福利云API失败，尝试xxapi.cn API
+      await this.tryXxapiGoldPriceForFirstLoad();
+      return;
+    }
+
+    // 如果福利云API返回数据但解析失败，也尝试xxapi.cn
+    await this.tryXxapiGoldPriceForFirstLoad();
+  }
+
+  async tryXxapiGoldPriceForFirstLoad() {
+    try {
+      // 使用xxapi.cn免费API（支持CORS，数据丰富）
+      const response = await fetch("https://v2.xxapi.cn/api/goldprice");
+      const data = await response.json();
+
+      if (
+        data &&
+        data.code === 200 &&
+        data.data &&
+        data.data.precious_metal_price &&
+        data.data.precious_metal_price.length > 0
+      ) {
+        // 使用第一个品牌的黄金价格作为参考价格
+        const goldPriceData = data.data.precious_metal_price[0];
+        const goldPrice = parseFloat(goldPriceData.gold_price);
+
+        if (goldPrice > 0) {
+          // 将人民币/克转换为美元/盎司（使用当前汇率）
+          const usdPerGram = goldPrice / this.exchangeRate; // 人民币转美元
+          const usdPerOz = usdPerGram * 31.1035; // 克转盎司
+
+          this.goldPrice = usdPerOz;
+          if (this.isFirstLoad) {
+            this.setGoldPriceInput(usdPerOz);
+          }
+          this.updateCurrentGoldPriceDisplay(usdPerOz);
+          console.log(
+            "使用xxapi.cn API获取金价:",
+            usdPerOz.toFixed(2),
+            "美元/盎司"
+          );
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("xxapi.cn API失败:", error);
+    }
+
+    // 如果两个API都失败，使用备用方案
+    await this.loadGoldPriceFallback();
+  }
+
+  async loadGoldPriceFallback() {
+    // 如果没有获取到真实金价，不填充输入框
+    console.log("无法获取实时金价数据，输入框保持为空");
+    this.goldPrice = 0;
+    this.updateCurrentGoldPriceDisplay(0);
+    // 不调用 setGoldPriceInput，让输入框保持为空
+  }
+
+  setGoldPriceInput(price) {
+    const goldPriceInput = document.getElementById("goldPrice");
+    if (goldPriceInput && !goldPriceInput.value && price > 0) {
+      goldPriceInput.value = price.toFixed(2);
+      // 触发计算
+      this.calculatePrice();
+    }
+  }
+
+  updateCurrentGoldPriceDisplay(price) {
+    const currentGoldPriceElement = document.getElementById("currentGoldPrice");
+    if (currentGoldPriceElement) {
+      if (price > 0) {
+        currentGoldPriceElement.textContent = `$${price.toFixed(2)}`;
+        currentGoldPriceElement.style.color = "#2d3748";
+      } else {
+        currentGoldPriceElement.textContent = "暂无数据";
+        currentGoldPriceElement.style.color = "#a0aec0";
+      }
     }
   }
 
@@ -81,22 +223,22 @@ class GoldPriceConverter {
       case "usd-oz":
         currencySymbol.textContent = "$";
         unitDisplay.textContent = "/ 盎司";
-        goldPriceInput.placeholder = "输入美元价格";
+        goldPriceInput.placeholder = "请输入美元价格";
         break;
       case "cny-oz":
         currencySymbol.textContent = "¥";
         unitDisplay.textContent = "/ 盎司";
-        goldPriceInput.placeholder = "输入人民币价格";
+        goldPriceInput.placeholder = "请输入人民币价格";
         break;
       case "cny-gram":
         currencySymbol.textContent = "¥";
         unitDisplay.textContent = "/ 克";
-        goldPriceInput.placeholder = "输入人民币价格";
+        goldPriceInput.placeholder = "请输入人民币价格";
         break;
       case "usd-gram":
         currencySymbol.textContent = "$";
         unitDisplay.textContent = "/ 克";
-        goldPriceInput.placeholder = "输入美元价格";
+        goldPriceInput.placeholder = "请输入美元价格";
         break;
     }
   }
@@ -188,11 +330,125 @@ class GoldPriceConverter {
     }, 3000);
   }
 
-  startAutoRefresh() {
-    // 每5分钟自动刷新汇率
+  startGoldPriceRefresh() {
+    // 每5秒自动刷新金价显示（不修改输入框）
     setInterval(() => {
-      this.loadExchangeRate();
-    }, 5 * 60 * 1000);
+      this.refreshGoldPriceOnly();
+    }, 5000);
+  }
+
+  async refreshGoldPriceOnly() {
+    // 只刷新金价显示，不修改输入框
+    this.isFirstLoad = false; // 标记为非首次加载
+    await this.loadGoldPriceOnly();
+  }
+
+  async loadGoldPriceOnly() {
+    try {
+      // 方案1: 使用福利云API（免费，支持CORS）
+      const response = await fetch("https://free.xwteam.cn/api/gold/trade");
+      const data = await response.json();
+
+      if (data && data.code === 200 && data.data) {
+        // 解析福利云API的金价数据
+        let goldPrice = 0;
+
+        // 优先使用伦敦金价格（GJ_Au），单位为美元/盎司
+        if (data.data.GJ && data.data.GJ.length > 0) {
+          const londonGold = data.data.GJ.find(
+            (item) => item.Symbol === "GJ_Au"
+          );
+          if (londonGold && londonGold.BP > 0) {
+            goldPrice = parseFloat(londonGold.BP);
+          }
+        }
+
+        // 如果没有伦敦金价格，使用上海黄金99.99价格（需要转换）
+        if (goldPrice === 0 && data.data.SH && data.data.SH.length > 0) {
+          const shGold = data.data.SH.find(
+            (item) => item.Symbol === "SH_Au9999"
+          );
+          if (shGold && shGold.BP > 0) {
+            // 上海黄金价格是人民币/克，需要转换为美元/盎司
+            const cnyPerGram = parseFloat(shGold.BP);
+            const usdPerGram = cnyPerGram / this.exchangeRate; // 人民币转美元
+            goldPrice = usdPerGram * 31.1035; // 克转盎司
+          }
+        }
+
+        // 如果还没有价格，使用国内黄金价格（需要转换）
+        if (goldPrice === 0 && data.data.LF && data.data.LF.length > 0) {
+          const domesticGold = data.data.LF.find(
+            (item) => item.Symbol === "Au"
+          );
+          if (domesticGold && domesticGold.BP > 0) {
+            // 国内黄金价格是人民币/克，需要转换为美元/盎司
+            const cnyPerGram = parseFloat(domesticGold.BP);
+            const usdPerGram = cnyPerGram / this.exchangeRate; // 人民币转美元
+            goldPrice = usdPerGram * 31.1035; // 克转盎司
+          }
+        }
+
+        if (goldPrice > 0) {
+          this.goldPrice = goldPrice;
+          this.updateCurrentGoldPriceDisplay(goldPrice);
+          console.log(
+            "使用福利云API更新金价:",
+            goldPrice.toFixed(2),
+            "美元/盎司"
+          );
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("福利云API失败:", error);
+      // 福利云API失败，尝试xxapi.cn API
+      await this.tryXxapiGoldPrice();
+      return;
+    }
+
+    // 如果福利云API返回数据但解析失败，也尝试xxapi.cn
+    await this.tryXxapiGoldPrice();
+  }
+
+  async tryXxapiGoldPrice() {
+    try {
+      // 使用xxapi.cn免费API（支持CORS，数据丰富）
+      const response = await fetch("https://v2.xxapi.cn/api/goldprice");
+      const data = await response.json();
+
+      if (
+        data &&
+        data.code === 200 &&
+        data.data &&
+        data.data.precious_metal_price &&
+        data.data.precious_metal_price.length > 0
+      ) {
+        // 使用第一个品牌的黄金价格作为参考价格
+        const goldPriceData = data.data.precious_metal_price[0];
+        const goldPrice = parseFloat(goldPriceData.gold_price);
+
+        if (goldPrice > 0) {
+          // 将人民币/克转换为美元/盎司（使用当前汇率）
+          const usdPerGram = goldPrice / this.exchangeRate; // 人民币转美元
+          const usdPerOz = usdPerGram * 31.1035; // 克转盎司
+
+          this.goldPrice = usdPerOz;
+          this.updateCurrentGoldPriceDisplay(usdPerOz);
+          console.log(
+            "使用xxapi.cn API更新金价:",
+            usdPerOz.toFixed(2),
+            "美元/盎司"
+          );
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("xxapi.cn API失败:", error);
+    }
+
+    // 如果所有API都失败，保持当前显示不变
+    console.log("所有金价API都失败，保持当前显示不变");
   }
 }
 
