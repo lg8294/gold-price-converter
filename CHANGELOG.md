@@ -1,6 +1,13 @@
 # 更新日志
 
-## [1.1.1] - 2025-09-28
+## [1.1.2] - 2025-09-28
+
+### 修改
+- 更新Google Analytics配置
+  - 将Google Analytics测量ID从占位符`GA_MEASUREMENT_ID`替换为实际ID`G-T3JJ1ZGS01`
+  - 移除Google Analytics代码中的注释说明
+
+## [11] - 2025-09-28
 
 ### 修改
 - 更新域名配置

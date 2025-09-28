@@ -5,6 +5,7 @@ export default defineConfig({
   root: "src",
   build: {
     outDir: "../dist",
+    emptyOutDir: true, // 强制清空输出目录
     assetsDir: "assets",
     sourcemap: false,
     minify: "terser",
