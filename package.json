@@ -4,7 +4,7 @@
   "description": "黄金价格换算器 - 美元/盎司转人民币/克",
   "main": "src/index.html",
   "scripts": {
-    "dev": "vite src",
+    "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "generate-icons": "node src/utils/scripts/generate-icons.js",
