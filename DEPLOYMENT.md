@@ -11,7 +11,7 @@ git add .
 git commit -m "Initial commit: Gold Price Converter"
 
 # 推送到 GitHub 或 GitLab
-git remote add origin https://github.com/yourusername/gold-price-converter.git
+git remote add origin https://github.com/lg8294/gold-price-converter.git
 git push -u origin main
 ```
 
@@ -50,7 +50,7 @@ npm run build
 5. 将 `dist` 文件夹中的所有文件拖拽到上传区域
 6. 点击 **"Deploy site"**
 
-## 方法三: 使用 Wrangler CLI
+## 方法三: 使用 Wrangler CLI 部署到 Cloudflare Workers
 
 ### 1. 安装 Wrangler
 
@@ -64,17 +64,22 @@ npm install -g wrangler
 wrangler login
 ```
 
-### 3. 部署
+### 3. 部署到 Cloudflare Workers
 
 ```bash
-wrangler pages deploy dist --project-name gold-price-converter
+npm run build
+wrangler deploy
 ```
+
+### 4. 配置 (可选)
+
+如果需要自定义配置，可以在 [wrangler.toml](file:///Users/lg/Desktop/gold-price-converter/wrangler.toml) 文件中进行修改。
 
 ## 自定义域名
 
 1. 在 Cloudflare Pages 项目设置中
 2. 进入 **Custom domains** 部分
-3. 添加你的域名
+3. 添加你的域名: `gold.lg8.dpdns.org`
 4. 按照指示配置 DNS 记录
 
 ## 性能优化
@@ -86,6 +91,33 @@ wrangler pages deploy dist --project-name gold-price-converter
 - ✅ Gzip 压缩
 - ✅ 安全头设置
 - ✅ 响应式设计
+- ✅ PWA 支持 (添加到主屏幕)
+- ✅ 金价每1分钟自动更新
+- ✅ SEO优化 (完整的meta标签和结构化数据)
+- ✅ 移动端优化 (触摸友好界面)
+
+## PWA 和添加到主屏幕支持
+
+项目支持 Progressive Web App (PWA) 功能，用户可以将应用添加到移动设备的主屏幕：
+
+### iOS Safari 添加到主屏幕
+1. 在 Safari 中打开网站 (https://gold.lg8.dpdns.org)
+2. 点击分享按钮
+3. 选择"添加到主屏幕"
+4. 应用将以独立应用的形式运行
+
+### Android Chrome 添加到主屏幕
+1. 在 Chrome 中打开网站 (https://gold.lg8.dpdns.org)
+2. 点击地址栏右侧的安装按钮
+3. 选择"添加到主屏幕"
+4. 应用将以独立应用的形式运行
+
+### SEO优势
+PWA应用具有以下SEO优势：
+- 更快的加载速度提升用户体验
+- 移动端友好性提高搜索排名
+- 可安装性增强用户参与度
+- 离线功能提高用户留存率
 
 ## 监控和维护
 
@@ -119,6 +151,12 @@ git push origin main
 ### 直接上传方式
 1. 重新运行 `npm run build`
 2. 上传新的 `dist` 文件
+
+### Wrangler 方式
+```bash
+npm run build
+wrangler deploy
+```
 
 ---
 

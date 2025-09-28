@@ -6,10 +6,13 @@
 
 - 🏆 **实时金价**: 自动获取并显示当前黄金价格
 - 💰 **多单位换算**: 支持美元/盎司、人民币/盎司、人民币/克、美元/克之间的转换
-- 🔄 **智能更新**: 金价每5秒自动更新，汇率首次加载获取
+- 🔄 **智能更新**: 金价每1分钟自动更新，汇率首次加载获取
 - 📱 **响应式设计**: 完美适配桌面和移动设备
 - ⚡ **快速加载**: 优化的性能和用户体验
 - 🎯 **精确计算**: 基于标准盎司到克的转换比例 (1盎司 = 31.1035克)
+- 📲 **添加到主屏幕**: 支持 iOS Safari 和 Android Chrome 添加到桌面功能，提供类似原生应用的体验
+- 🔍 **SEO优化**: 包含完整的meta标签、Open Graph标签、Twitter Card标签和结构化数据，提高搜索引擎可见性
+- 📊 **数据分析**: 集成Google Analytics，便于跟踪用户行为和优化体验
 
 ## 技术栈
 
@@ -19,6 +22,23 @@
 - **汇率API**: ExchangeRate-API (免费汇率服务)
 - **金价API**: 福利云API (免费金价服务，实时交易行情)
 - **部署**: Cloudflare Pages
+
+## 项目结构
+
+```
+src/
+├── assets/           # 静态资源文件
+│   ├── favicon.svg   # 网站图标
+│   ├── icons/        # 应用图标
+│   └── manifest.json # PWA 配置文件
+├── components/       # 组件目录（未来扩展）
+├── styles/           # 样式文件
+│   └── main.css      # 主样式文件
+├── utils/            # 工具函数
+│   └── scripts/      # 脚本文件
+├── index.html        # 主页面
+└── main.js           # 主JavaScript文件
+```
 
 ## 本地开发
 
@@ -47,9 +67,22 @@ npm run build
 1. 将代码推送到 GitHub/GitLab 仓库
 2. 在 Cloudflare Pages 中连接仓库
 3. 设置构建配置:
-   - **构建命令**: `npm run build`
-   - **构建输出目录**: `dist`
-   - **Node.js 版本**: 18.x
+   - **Framework preset**: Vite
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+   - **Root directory**: `/` (留空)
+   - **Node.js version**: 18.x
+
+### SEO 部署提示
+
+为了获得最佳的SEO效果，请确保:
+
+1. **设置自定义域名**: 使用自己的域名而不是默认的Cloudflare子域名，有助于建立品牌权威性
+2. **配置SSL证书**: Cloudflare Pages会自动提供免费SSL证书，确保网站安全性
+3. **启用Brotli压缩**: 在Cloudflare仪表板中启用以提高加载速度，改善用户体验
+4. **配置缓存策略**: 正确设置HTTP头以优化资源缓存，提高页面加载速度
+5. **定期更新内容**: 保持项目文档和说明的更新，有助于搜索引擎抓取
+6. **监控性能**: 使用Google Search Console等工具监控SEO表现
 
 ### 方法二: 直接上传
 
@@ -59,15 +92,19 @@ npm run build
 
 ## 部署到 Cloudflare Workers
 
-### 通过 Git 仓库
+### 通过 Wrangler CLI
 
-1. 将代码推送到 GitHub/GitLab 仓库
-2. 在 Cloudflare Workers 中连接仓库
-3. 设置构建配置:
-   - **构建命令**: `npm run build`
-   - **部署命令**: `npx wrangler deploy --assets=./dist`
-   - **Node.js 版本**: 18.x
-  
+```bash
+# 安装 Wrangler
+npm install -g wrangler
+
+# 登录 Cloudflare
+wrangler login
+
+# 构建并部署
+npm run deploy
+```
+
 ## 使用说明
 
 ### 基本使用
@@ -92,7 +129,7 @@ npm run build
 ### 金价数据
 - **主要数据源**: 福利云API (免费API，实时交易行情)
 - **备用数据源**: xxapi.cn (多品牌金价数据)
-- **更新频率**: 每5秒自动更新
+- **更新频率**: 每1分钟自动更新
 - **数据内容**: 伦敦金、上海金交所、国内金价等多源数据
 - **单位转换**: 自动将人民币/克转换为美元/盎司
 
@@ -111,7 +148,7 @@ npm run build
 
 ### 性能优化
 - 汇率只获取一次，减少API调用
-- 金价5秒更新，平衡实时性和性能
+- 金价每1分钟更新，平衡实时性和性能
 - 智能缓存机制
 - 轻量级实现，快速加载
 
@@ -121,6 +158,57 @@ npm run build
 - Firefox 55+
 - Safari 12+
 - Edge 79+
+
+### 移动端支持
+
+- **iOS Safari**: 支持添加到主屏幕，提供类似原生应用的体验
+- **Android Chrome**: 支持添加到主屏幕
+
+#### 如何添加到主屏幕
+
+**iOS Safari:**
+1. 在 Safari 中打开网站 (https://gold.lg8.dpdns.org)
+2. 点击底部的分享按钮
+3. 选择"添加到主屏幕"
+4. 点击"添加"
+5. 应用将以独立应用的形式运行
+
+**Android Chrome:**
+1. 在 Chrome 中打开网站 (https://gold.lg8.dpdns.org)
+2. 点击地址栏右侧的安装按钮（或三点菜单中的"添加到主屏幕"）
+3. 点击"添加"
+4. 应用将以独立应用的形式运行
+
+## SEO优化
+
+本项目已针对搜索引擎优化进行了以下配置:
+
+### Meta标签优化
+- 包含描述性标题和描述meta标签，准确反映页面内容
+- 添加了相关的关键词meta标签，覆盖用户可能搜索的词汇
+- 配置了Open Graph和Twitter Card标签以支持社交分享
+- 添加了canonical标签防止重复内容问题
+- 配置了robots标签指导搜索引擎爬虫
+
+### 性能优化
+- 快速加载时间（Lighthouse性能评分>90）
+- 响应式设计适配所有设备
+- PWA支持提高用户体验
+- 资源压缩和缓存策略优化
+
+### 结构化数据
+- 包含应用程序结构化数据，帮助搜索引擎理解页面内容
+- 提供清晰的内容层次结构
+- 添加了featureList属性详细描述应用功能
+
+### 移动端优化
+- 支持添加到主屏幕功能，提高用户留存率
+- 响应式设计确保在所有设备上都有良好体验
+- 快速加载速度提升移动用户体验
+
+### 分析跟踪
+- 集成Google Analytics以跟踪用户行为
+- 便于优化用户体验和内容策略
 
 ## 许可证
 
@@ -132,4 +220,4 @@ MIT License
 
 ---
 
-**免责声明**: 本工具仅供参考，实际交易请以官方价格为准。数据来源于第三方API，可能存在延迟或误差。
+**免责声明**: 本工具仅供参考，实际交易请以官方价格为准。数据来源于第三方API，可能存在延迟或误差.

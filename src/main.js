@@ -141,33 +141,71 @@ class GoldPriceConverter {
       const response = await fetch("https://v2.xxapi.cn/api/goldprice");
       const data = await response.json();
 
-      if (
-        data &&
-        data.code === 200 &&
-        data.data &&
-        data.data.precious_metal_price &&
-        data.data.precious_metal_price.length > 0
-      ) {
-        // 使用第一个品牌的黄金价格作为参考价格
-        const goldPriceData = data.data.precious_metal_price[0];
-        const goldPrice = parseFloat(goldPriceData.gold_price);
-
-        if (goldPrice > 0) {
-          // 将人民币/克转换为美元/盎司（使用当前汇率）
-          const usdPerGram = goldPrice / this.exchangeRate; // 人民币转美元
-          const usdPerOz = usdPerGram * 31.1035; // 克转盎司
-
-          this.goldPrice = usdPerOz;
-          if (this.isFirstLoad) {
-            this.setGoldPriceInput(usdPerOz);
-          }
-          this.updateCurrentGoldPriceDisplay(usdPerOz);
-          console.log(
-            "使用xxapi.cn API获取金价:",
-            usdPerOz.toFixed(2),
-            "美元/盎司"
+      if (data && data.code === 200 && data.data) {
+        // 优先使用银行金条价格
+        if (
+          data.data.bank_gold_bar_price &&
+          data.data.bank_gold_bar_price.length > 0
+        ) {
+          const bankGoldPrice = parseFloat(
+            data.data.bank_gold_bar_price[0].price
           );
-          return;
+          if (bankGoldPrice > 0) {
+            // 银行金条价格是人民币/克，需要转换为美元/盎司（使用当前汇率）
+            const usdPerGram = bankGoldPrice / this.exchangeRate; // 人民币转美元
+            const usdPerOz = usdPerGram * 31.1035; // 克转盎司
+
+            this.goldPrice = usdPerOz;
+            if (this.isFirstLoad) {
+              this.setGoldPriceInput(usdPerOz);
+            }
+            this.updateCurrentGoldPriceDisplay(usdPerOz);
+            console.log(
+              "使用xxapi.cn API银行金条价格获取金价:",
+              usdPerOz.toFixed(2),
+              "美元/盎司"
+            );
+            return;
+          }
+        }
+
+        // 如果没有银行金条价格，使用黄金回收价格
+        if (
+          data.data.gold_recycle_price &&
+          data.data.gold_recycle_price.length > 0
+        ) {
+          // 查找24K金回收价格
+          const gold24K = data.data.gold_recycle_price.find(
+            (item) => item.gold_type === "24K金回收"
+          );
+
+          let goldPrice = 0;
+          if (gold24K && gold24K.recycle_price) {
+            goldPrice = parseFloat(gold24K.recycle_price);
+          } else if (data.data.gold_recycle_price[0].recycle_price) {
+            // 如果没有24K金回收价格，使用第一个回收价格
+            goldPrice = parseFloat(
+              data.data.gold_recycle_price[0].recycle_price
+            );
+          }
+
+          if (goldPrice > 0) {
+            // 将人民币/克转换为美元/盎司（使用当前汇率）
+            const usdPerGram = goldPrice / this.exchangeRate; // 人民币转美元
+            const usdPerOz = usdPerGram * 31.1035; // 克转盎司
+
+            this.goldPrice = usdPerOz;
+            if (this.isFirstLoad) {
+              this.setGoldPriceInput(usdPerOz);
+            }
+            this.updateCurrentGoldPriceDisplay(usdPerOz);
+            console.log(
+              "使用xxapi.cn API黄金回收价格获取金价:",
+              usdPerOz.toFixed(2),
+              "美元/盎司"
+            );
+            return;
+          }
         }
       }
     } catch (error) {
@@ -205,6 +243,12 @@ class GoldPriceConverter {
         currentGoldPriceElement.textContent = "暂无数据";
         currentGoldPriceElement.style.color = "#a0aec0";
       }
+    }
+
+    // 更新价格单位显示
+    const priceUnitElement = document.querySelector(".price-unit");
+    if (priceUnitElement) {
+      priceUnitElement.textContent = "美元/盎司";
     }
   }
 
@@ -331,10 +375,10 @@ class GoldPriceConverter {
   }
 
   startGoldPriceRefresh() {
-    // 每5秒自动刷新金价显示（不修改输入框）
+    // 每1分钟自动刷新金价显示（不修改输入框）
     setInterval(() => {
       this.refreshGoldPriceOnly();
-    }, 5000);
+    }, 60000);
   }
 
   async refreshGoldPriceOnly() {
@@ -417,30 +461,65 @@ class GoldPriceConverter {
       const response = await fetch("https://v2.xxapi.cn/api/goldprice");
       const data = await response.json();
 
-      if (
-        data &&
-        data.code === 200 &&
-        data.data &&
-        data.data.precious_metal_price &&
-        data.data.precious_metal_price.length > 0
-      ) {
-        // 使用第一个品牌的黄金价格作为参考价格
-        const goldPriceData = data.data.precious_metal_price[0];
-        const goldPrice = parseFloat(goldPriceData.gold_price);
-
-        if (goldPrice > 0) {
-          // 将人民币/克转换为美元/盎司（使用当前汇率）
-          const usdPerGram = goldPrice / this.exchangeRate; // 人民币转美元
-          const usdPerOz = usdPerGram * 31.1035; // 克转盎司
-
-          this.goldPrice = usdPerOz;
-          this.updateCurrentGoldPriceDisplay(usdPerOz);
-          console.log(
-            "使用xxapi.cn API更新金价:",
-            usdPerOz.toFixed(2),
-            "美元/盎司"
+      if (data && data.code === 200 && data.data) {
+        // 优先使用银行金条价格
+        if (
+          data.data.bank_gold_bar_price &&
+          data.data.bank_gold_bar_price.length > 0
+        ) {
+          const bankGoldPrice = parseFloat(
+            data.data.bank_gold_bar_price[0].price
           );
-          return;
+          if (bankGoldPrice > 0) {
+            // 银行金条价格是人民币/克，需要转换为美元/盎司（使用当前汇率）
+            const usdPerGram = bankGoldPrice / this.exchangeRate; // 人民币转美元
+            const usdPerOz = usdPerGram * 31.1035; // 克转盎司
+
+            this.goldPrice = usdPerOz;
+            this.updateCurrentGoldPriceDisplay(usdPerOz);
+            console.log(
+              "使用xxapi.cn API银行金条价格更新金价:",
+              usdPerOz.toFixed(2),
+              "美元/盎司"
+            );
+            return;
+          }
+        }
+
+        // 如果没有银行金条价格，使用黄金回收价格
+        if (
+          data.data.gold_recycle_price &&
+          data.data.gold_recycle_price.length > 0
+        ) {
+          // 查找24K金回收价格
+          const gold24K = data.data.gold_recycle_price.find(
+            (item) => item.gold_type === "24K金回收"
+          );
+
+          let goldPrice = 0;
+          if (gold24K && gold24K.recycle_price) {
+            goldPrice = parseFloat(gold24K.recycle_price);
+          } else if (data.data.gold_recycle_price[0].recycle_price) {
+            // 如果没有24K金回收价格，使用第一个回收价格
+            goldPrice = parseFloat(
+              data.data.gold_recycle_price[0].recycle_price
+            );
+          }
+
+          if (goldPrice > 0) {
+            // 将人民币/克转换为美元/盎司（使用当前汇率）
+            const usdPerGram = goldPrice / this.exchangeRate; // 人民币转美元
+            const usdPerOz = usdPerGram * 31.1035; // 克转盎司
+
+            this.goldPrice = usdPerOz;
+            this.updateCurrentGoldPriceDisplay(usdPerOz);
+            console.log(
+              "使用xxapi.cn API黄金回收价格更新金价:",
+              usdPerOz.toFixed(2),
+              "美元/盎司"
+            );
+            return;
+          }
         }
       }
     } catch (error) {
